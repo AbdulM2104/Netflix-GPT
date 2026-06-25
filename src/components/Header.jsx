@@ -1,23 +1,47 @@
-// import React from "react";
-// import Logo from "../assets/Logo.png";
-
-// const Header = () => {
-//   return (
-//     <div>
-//       <img src={Logo} alt="Logo" />
-//     </div>
-//   );
-// };
-
-// export default Header;
-
 import React from "react";
 import Logo from "../assets/Logo.png";
+import Profile from "../assets/Profile.png";
+import { signOut } from "firebase/auth";
+import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Header = () => {
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user); // Access the user from Redux store
+  const handleSignOut = () => {
+    // Logic to sign out the user
+    signOut(auth)
+      .then(() => {
+        // Sign-out successful.
+        navigate("/"); // Redirect to login page after sign-out
+      })
+      .catch((error) => {
+        // An error happened.
+        navigate("/error"); // Redirect to an error page
+      });
+    console.log("User signed out");
+  };
+
   return (
-    <div className="absolute top-0 left-25 w-full flex items-center px-8 py-4 z-20">
+    <div className="absolute top-0 left-25 w-full flex items-center px-8 py-4 z-20 ju">
       <img src={Logo} alt="Logo" className="w-36 md:w-44 object-contain" />
+      {/* Display user profile and sign-out button if user is logged in */}
+      {user && (
+        <div className="absolute top-0 right-25 w-full flex items-center justify-end px-8 py-4 z-20">
+          <img
+            src={user.photoURL || Profile}
+            alt="Profile"
+            className="w-10 h-10 object-cover"
+          />
+          <button
+            onClick={handleSignOut}
+            className="ml-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+          >
+            Sign Out
+          </button>
+        </div>
+      )}
     </div>
   );
 };

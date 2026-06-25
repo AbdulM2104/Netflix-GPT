@@ -1,80 +1,104 @@
-// import React from "react";
-// import Header from "./Header";
-// import Background from "../assets/Background.jfif";
-
-// const Login = () => {
-//   return (
-//     <>
-//       <Header />
-//       <div className="login">
-//         <img src={Background} alt="Background" />
-//       </div>
-//     </>
-//   );
-// };
-
-// export default Login;
-
-// import React from "react";
-// import Header from "./Header";
-// import Background from "../assets/Background.jfif";
-
-// const Login = () => {
-//   return (
-//     <div className="relative h-screen w-full overflow-hidden">
-//       {/* Header (logo on top) */}
-//       <Header />
-
-//       {/* Background image */}
-//       <div
-//         className="absolute inset-0 bg-cover bg-center"
-//         style={{
-//           backgroundImage: `url(${"https://assets.nflxext.com/ffe/siteui/vlv3/8027eb3f-343a-499d-9892-e683c12e3cb1/web/IN-en-20260608-TRIFECTA-perspective_d70af879-e407-4aee-8615-4c82210065d5_large.jpg"})`,
-//         }} /* Background */
-//       />
-
-//       {/* Dark overlay (Netflix look) */}
-//       <div className="absolute inset-0 bg-black/70"></div>
-
-//       {/* Hero content */}
-//       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
-//         <h1 className="text-4xl md:text-6xl font-extrabold max-w-3xl leading-tight">
-//           Unlimited movies, TV shows, and more
-//         </h1>
-
-//         <p className="mt-4 text-lg md:text-xl text-gray-300">
-//           Watch anywhere. Cancel anytime.
-//         </p>
-
-//         <p className="mt-2 text-md text-gray-400">
-//           Ready to watch? Enter your email to create or restart your membership.
-//         </p>
-
-//         {/* Email box */}
-//         <div className="mt-6 flex flex-col sm:flex-row gap-3 w-full max-w-xl">
-//           <input
-//             type="email"
-//             placeholder="Email address"
-//             className="flex-1 px-4 py-3 rounded bg-black/60 border border-gray-500 text-white outline-none"
-//           />
-
-//           <button className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded font-semibold text-lg transition">
-//             Get Started
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Login;
-
 import React from "react";
 import Header from "./Header";
-import { useState } from "react";
+import Avatar from "../assets/Avatar.jpg";
+import { useState, useRef } from "react";
+import { checkValidData } from "../utils/validate";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
 const Login = () => {
   const [isSignIn, setIsSignIn] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const email = useRef(null);
+  const password = useRef(null);
+  const fullName = useRef(null);
+
+  const handleButtonClick = () => {
+    // Logic to validate user credentials
+    const emailError = checkValidData(
+      fullName.current?.value,
+      email.current.value,
+      password.current.value,
+      isSignIn,
+    );
+    setError(emailError);
+
+    if (emailError) {
+      return; // Stop further execution if there's an error
+    }
+
+    // If no errors, proceed with authentication
+    if (!isSignIn) {
+      // Sign up logic here
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value,
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          console.log("User signed up:", user);
+
+          // Update the user's profile with the full name
+          updateProfile(user, {
+            displayName: fullName.current?.value,
+            photoURL: Avatar, // Set the default avatar
+          })
+            .then(() => {
+              // Profile updated!
+              // Dispatch the user data to Redux store
+              const { uid, email, displayName, photoURL } = auth.currentUser;
+              dispatch(
+                addUser({
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: user.displayName,
+                  photoURL: user.photoURL,
+                }),
+              );
+              navigate("/browse");
+            })
+            .catch((error) => {
+              // An error occurred
+              setError(error.message); // Set the error message to display it
+            });
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setError(errorMessage); // Set the error message to display it
+        });
+    } else {
+      // Sign in
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value,
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log("User signed in:", user);
+          navigate("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setError(errorMessage); // Set the error message to display it
+        });
+    }
+  };
 
   const toggleSignup = () => {
     // Logic to toggle to signup form
@@ -111,11 +135,13 @@ const Login = () => {
               type="text"
               placeholder="Full Name"
               className="w-full p-3 mb-4 rounded bg-gray-800 text-white outline-none"
+              ref={fullName}
             />
           )}
 
           {/* Email */}
           <input
+            ref={email}
             type="text"
             placeholder="Email or phone number"
             className="w-full p-3 mb-4 rounded bg-gray-800 text-white outline-none"
@@ -123,13 +149,18 @@ const Login = () => {
 
           {/* Password */}
           <input
+            ref={password}
             type="password"
             placeholder="Password"
             className="w-full p-3 mb-6 rounded bg-gray-800 text-white outline-none"
           />
-
-          {/* Sign In Button */}
-          <button className="w-full bg-red-600 hover:bg-red-700 py-3 rounded font-semibold">
+          {/* Error Message */}
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {/* Sign In/Sign Up Button */}
+          <button
+            className="w-full bg-red-600 hover:bg-red-700 py-3 rounded font-semibold"
+            onClick={handleButtonClick}
+          >
             {isSignIn ? "Sign In" : "Sign Up"}
           </button>
 
