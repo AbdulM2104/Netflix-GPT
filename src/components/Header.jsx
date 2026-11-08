@@ -7,11 +7,13 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { addUser, removeUser } from "../utils/userSlice";
+import { toggleGptSearchView } from "../utils/gptSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user); // Access the user from Redux store
+  const showGpt = useSelector((state) => state.gpt.showGptSearch); // Access the GPT search view state from Redux store
   const handleSignOut = () => {
     // Logic to sign out the user
     signOut(auth)
@@ -22,7 +24,6 @@ const Header = () => {
         // An error happened.
         navigate("/error"); // Redirect to an error page
       });
-    console.log("User signed out");
   };
 
   useEffect(() => {
@@ -50,12 +51,23 @@ const Header = () => {
     return () => unsubscribe();
   }, []);
 
+  const handleGPTSearchClick = () => {
+    dispatch(toggleGptSearchView()); // Dispatch the action to toggle GPT search view
+  };
+
   return (
     <div className="absolute top-0 left-0 w-full flex items-center px-8 py-4 z-20">
       <img src={Logo} alt="Logo" className="h-20 w-auto object-contain" />
       {/* Display user profile and sign-out button if user is logged in */}
       {user && (
         <div className="absolute top-0 right-0 w-full flex items-center justify-end px-8 py-4 z-20">
+          <button
+            className="cursor-pointer px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition mr-4"
+            onClick={handleGPTSearchClick}
+          >
+            {showGpt ? "Switch to Home" : "GPT Search"}
+          </button>
+
           <img
             src={user.photoURL || Profile}
             alt="Profile"

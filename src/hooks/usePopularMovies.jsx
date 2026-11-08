@@ -14,7 +14,6 @@ const usePopularMovies = () => {
         API_OPTIONS,
       );
       const data = await response.json();
-      console.log(data.results);
       dispatch(addPopularMovies(data.results));
     } catch (error) {
       console.error("Error fetching popular movies:", error);

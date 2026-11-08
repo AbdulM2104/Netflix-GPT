@@ -12,14 +12,12 @@ const useMovieTrailer = (movieId) => {
       API_OPTIONS,
     );
     const json = await data.json();
-    console.log(json);
 
     const filteredTrailer = json.results.find(
       (video) => video.type === "Trailer",
     );
     const trailer =
       filteredTrailer?.length > 0 ? filteredTrailer[0] : json.results[0];
-    console.log(trailer);
     dispatch(addTrailerVideo(trailer));
   };
 

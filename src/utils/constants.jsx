@@ -11,3 +11,5 @@ export const API_OPTIONS = {
 };
 
 export const Image_URL = "https://image.tmdb.org/t/p/w500";
+
+export const GEMINI_SECRET_KEY = "";

@@ -47,7 +47,6 @@ const Login = () => {
         .then((userCredential) => {
           // Signed up
           const user = userCredential.user;
-          console.log("User signed up:", user);
 
           // Update the user's profile with the full name
           updateProfile(user, {
@@ -88,7 +87,6 @@ const Login = () => {
         .then((userCredential) => {
           // Signed in
           const user = userCredential.user;
-          console.log("User signed in:", user);
           // navigate("/browse");
         })
         .catch((error) => {

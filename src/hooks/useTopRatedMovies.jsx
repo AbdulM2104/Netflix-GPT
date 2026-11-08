@@ -14,7 +14,6 @@ const useTopRatedMovies = () => {
         API_OPTIONS,
       );
       const data = await response.json();
-      console.log(data.results);
       dispatch(addTopRatedMovies(data.results));
     } catch (error) {
       console.error("Error fetching top rated movies:", error);

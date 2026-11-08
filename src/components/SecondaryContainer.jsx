@@ -9,10 +9,6 @@ const SecondaryContainer = () => {
   const popularMovies = useSelector((state) => state.movies.popularMovies);
   const topRatedMovies = useSelector((state) => state.movies.topRatedMovies);
   const upcomingMovies = useSelector((state) => state.movies.upcomingMovies);
-  console.log("Now Playing:", nowPlayingMovies);
-  console.log("Popular:", popularMovies);
-  console.log("Top Rated:", topRatedMovies);
-  console.log("Upcoming:", upcomingMovies);
 
   return (
     <div className="bg-black">

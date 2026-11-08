@@ -14,7 +14,6 @@ const useUpcomingMovies = () => {
         API_OPTIONS,
       );
       const data = await response.json();
-      console.log(data.results);
       dispatch(addUpcomingMovies(data.results));
     } catch (error) {
       console.error("Error fetching upcoming movies:", error);
